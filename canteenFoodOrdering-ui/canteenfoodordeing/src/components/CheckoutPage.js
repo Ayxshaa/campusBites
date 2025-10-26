@@ -1,24 +1,62 @@
-// components/CheckoutPage.js
-import React, { useState } from 'react';
-import {  useNavigate } from 'react-router-dom';
-import { useCart } from '../components/CartContext'; // Import useCart hook
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useCart } from '../components/CartContext';
 
 const CheckoutPage = () => {
-  
   const navigate = useNavigate();
-  
-  // Use the cart context instead of local state for cart management
   const { cartItems, totalPrice, updateQuantity, removeFromCart, clearCart } = useCart();
   
-  // State for customer information
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
     email: '',
     phone: '',
-    paymentMethod: 'card'
+    paymentMethod: 'razorpay'
   });
   
-  // Handle input changes
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+  
+  // Razorpay configuration
+  const RAZORPAY_KEY_ID = "rzp_test_RXg0a5Bf1QLwtk";
+  const CREATE_ORDER_URL = "http://localhost:8000/api/create-order";
+  const VERIFY_PAYMENT_URL = "http://localhost:8000/api/verify-payment";
+  
+  // Load Razorpay script
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    script.onload = () => {
+      console.log('Razorpay script loaded successfully');
+      setRazorpayLoaded(true);
+    };
+    script.onerror = () => {
+      console.error('Failed to load Razorpay script');
+      alert('Failed to load payment gateway. Please refresh the page.');
+    };
+    document.body.appendChild(script);
+
+    return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
+  
+  // Save order to localStorage for tracking
+  const saveOrderToLocalStorage = (orderData) => {
+    try {
+      const existingOrders = localStorage.getItem('customerOrders');
+      const orders = existingOrders ? JSON.parse(existingOrders) : [];
+      
+      orders.push(orderData);
+      localStorage.setItem('customerOrders', JSON.stringify(orders));
+      console.log('Order saved to localStorage:', orderData.id);
+    } catch (error) {
+      console.error('Error saving order:', error);
+    }
+  };
+  
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setCustomerInfo({
@@ -27,21 +65,17 @@ const CheckoutPage = () => {
     });
   };
   
-  // Handle quantity decrease
   const handleDecreaseQuantity = (itemId) => {
     const item = cartItems.find(item => item.id === itemId);
     if (item) {
       if (item.quantity <= 1) {
-        // Remove item if quantity would become 0 or less
         removeFromCart(itemId);
       } else {
-        // Decrease quantity by 1
         updateQuantity(itemId, item.quantity - 1);
       }
     }
   };
   
-  // Handle quantity increase
   const handleIncreaseQuantity = (itemId) => {
     const item = cartItems.find(item => item.id === itemId);
     if (item) {
@@ -49,36 +83,148 @@ const CheckoutPage = () => {
     }
   };
   
-  // Handle removing item completely
   const handleRemoveItem = (itemId) => {
     removeFromCart(itemId);
   };
   
-  // Handle checkout form submission
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleBack = () => {
+    navigate('/menu');
+  };
+  
+  // Razorpay Payment Integration
+  const initiateRazorpayPayment = async () => {
+    if (!customerInfo.name || !customerInfo.email || !customerInfo.phone) {
+      alert('Please fill in all customer details');
+      return;
+    }
     
     if (cartItems.length === 0) {
       alert('Your cart is empty. Please add items before placing an order.');
       return;
     }
+
+    if (!razorpayLoaded) {
+      alert('Payment gateway is still loading. Please wait a moment.');
+      return;
+    }
     
-    // Here you would typically process the order
-    // For demonstration purposes, we'll just show an alert
-    alert(`Order placed successfully! Thank you ${customerInfo.name}!`);
+    setIsProcessing(true);
     
-    // Clear the cart using context method
-    clearCart();
-    
-    // Navigate back to menu
-    navigate('/menu');
+    try {
+      // Step 1: Create order on backend
+      const orderRequestData = {
+        amount: totalPrice,
+        receipt: `order_${Date.now()}`,
+        customerName: customerInfo.name,
+        customerEmail: customerInfo.email,
+        customerPhone: customerInfo.phone,
+        items: cartItems
+      };
+      
+      console.log("Sending data:", JSON.stringify(orderRequestData, null, 2));
+      
+      const response = await fetch(CREATE_ORDER_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderRequestData),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Server responded with ${response.status}`);
+      }
+      
+      const orderResponse = await response.json();
+      console.log("Order created:", orderResponse);
+      
+      // Step 2: Configure Razorpay options
+      const options = {
+        key: RAZORPAY_KEY_ID,
+        amount: orderResponse.amount,
+        currency: "INR",
+        name: "Restaurant Name",
+        description: "Order Payment",
+        order_id: orderResponse.id,
+        handler: async function (response) {
+          console.log("Payment successful:", response);
+          
+          // Step 3: Verify payment on backend
+          try {
+            const verificationResponse = await fetch(VERIFY_PAYMENT_URL, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature
+              }),
+            });
+            
+            if (verificationResponse.ok) {
+              // Save order to localStorage for tracking
+              const orderData = {
+                id: response.razorpay_order_id,
+                orderDate: new Date().toISOString(),
+                status: 'pending',
+                items: cartItems.map(item => ({
+                  name: item.name,
+                  quantity: item.quantity,
+                  price: item.price
+                })),
+                totalAmount: totalPrice,
+                customerName: customerInfo.name,
+                customerPhone: customerInfo.phone,
+                customerEmail: customerInfo.email,
+                paymentId: response.razorpay_payment_id
+              };
+              
+              saveOrderToLocalStorage(orderData);
+              
+              alert(`Payment Verified Successfully! Thank you ${customerInfo.name}!`);
+              clearCart();
+              
+              // Navigate to track orders page
+              navigate('/track-orders');
+            } else {
+              alert("Payment verification failed!");
+            }
+          } catch (error) {
+            console.error("Verification error:", error);
+            alert("Could not verify payment. Please contact support.");
+          } finally {
+            setIsProcessing(false);
+          }
+        },
+        prefill: {
+          name: customerInfo.name,
+          email: customerInfo.email,
+          contact: customerInfo.phone
+        },
+        theme: {
+          color: "#3399cc"
+        },
+        modal: {
+          ondismiss: function() {
+            setIsProcessing(false);
+          }
+        }
+      };
+      
+      // Step 4: Open Razorpay checkout
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+      
+    } catch (error) {
+      console.error("Error creating order:", error);
+      alert("Could not connect to payment server. Please try again.");
+      setIsProcessing(false);
+    }
   };
   
-  // Go back to menu
-  const handleBack = () => {
-    navigate('/menu');
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    initiateRazorpayPayment();
   };
-
+  
   return (
     <div className="bg-gray-50 min-h-screen p-6">
       <div className="max-w-4xl mx-auto">
@@ -199,7 +345,6 @@ const CheckoutPage = () => {
                     />
                   </div>
                   
-                  
                   <div className="mb-6">
                     <label className="block text-gray-700 mb-1">Payment Method</label>
                     <div className="flex space-x-4">
@@ -207,12 +352,12 @@ const CheckoutPage = () => {
                         <input
                           type="radio"
                           name="paymentMethod"
-                          value="card"
-                          checked={customerInfo.paymentMethod === 'card'}
+                          value="razorpay"
+                          checked={customerInfo.paymentMethod === 'razorpay'}
                           onChange={handleInputChange}
                           className="mr-2"
                         />
-                        Online
+                        Online Payment (Razorpay)
                       </label>
                     </div>
                   </div>
@@ -227,9 +372,12 @@ const CheckoutPage = () => {
                     </button>
                     <button
                       type="submit"
-                      className="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-6 rounded-lg"
+                      disabled={isProcessing || cartItems.length === 0 || !razorpayLoaded}
+                      className="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-6 rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
                     >
-                      Place Order
+                      {!razorpayLoaded ? 'Loading Payment...' : 
+                       isProcessing ? 'Processing...' : 
+                       'Place Order'}
                     </button>
                   </div>
                 </form>

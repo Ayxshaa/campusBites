@@ -1,17 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useCart } from './CartContext';
-import { Menu, X, ShoppingCart } from 'lucide-react';
+import { Menu, X, ShoppingCart, Package } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
 
 const Navbar = () => {
   const { totalItems } = useCart();
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const [activePage, setActivePage] = useState('/');
+  const [activeOrdersCount, setActiveOrdersCount] = useState(0);
 
   // Set active page based on current URL path when component mounts or location changes
   useEffect(() => {
     setActivePage(location.pathname);
+  }, [location]);
+
+  // Check for active orders
+  useEffect(() => {
+    const checkActiveOrders = () => {
+      try {
+        const orders = JSON.parse(localStorage.getItem('customerOrders') || '[]');
+        const active = orders.filter(order => 
+          ['pending', 'confirmed', 'preparing', 'ready'].includes(order.status)
+        ).length;
+        setActiveOrdersCount(active);
+      } catch (error) {
+        console.error('Error checking active orders:', error);
+      }
+    };
+
+    checkActiveOrders();
+    
+    // Check every 30 seconds for updates
+    const interval = setInterval(checkActiveOrders, 30000);
+    
+    return () => clearInterval(interval);
   }, [location]);
 
   const toggleMenu = () => {
@@ -29,7 +54,7 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center">
-            <Link to="/">
+              <Link to="/">
                 <img className="h-40" src="/images/logo1.jpeg" alt="FoodDelivery Logo" />
               </Link>
             </div>
@@ -60,16 +85,26 @@ const Navbar = () => {
               >
                 About
               </Link>
-             
+              <Link 
+                to="/track-orders" 
+                className={`${isActive('/track-orders') ? 'text-orange-600 border-orange-500' : 'border-transparent text-gray-600 hover:border-orange-300 hover:text-orange-600'} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium relative`}
+              >
+                Track Orders
+                {activeOrdersCount > 0 && (
+                  <span className="absolute -top-1 -right-2 bg-red-500 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs font-bold">
+                    {activeOrdersCount}
+                  </span>
+                )}
+              </Link>
             </div>
           </div>
           
           <div className="flex items-center">
             <div className="hidden md:flex md:items-center md:space-x-4">
-              <Link to="/cart" className="flex items-center text-gray-600 hover:text-orange-500">
+              <Link to="/cart" className="flex items-center text-gray-600 hover:text-orange-500 relative">
                 <ShoppingCart className="h-6 w-6" />
                 {totalItems > 0 && (
-                  <span className="ml-1 bg-orange-500 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs">
+                  <span className="absolute -top-2 -right-2 bg-orange-500 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs">
                     {totalItems}
                   </span>
                 )}
@@ -129,11 +164,24 @@ const Navbar = () => {
             >
               About
             </Link>
-            
+            <Link 
+              to="/track-orders" 
+              className={`${isActive('/track-orders') ? 'bg-orange-50 border-orange-500 text-orange-600' : 'border-transparent text-gray-600 hover:bg-orange-50 hover:border-orange-300 hover:text-orange-600'} block pl-3 pr-4 py-2 border-l-4 text-base font-medium relative`}
+              onClick={() => setIsOpen(false)}
+            >
+              <span className="flex items-center">
+                Track Orders
+                {activeOrdersCount > 0 && (
+                  <span className="ml-2 bg-red-500 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs font-bold">
+                    {activeOrdersCount}
+                  </span>
+                )}
+              </span>
+            </Link>
           </div>
           <div className="pt-4 pb-3 border-t border-gray-200">
             <div className="flex items-center px-4">
-              <Link to="/cart" className="flex items-center text-gray-600 hover:text-orange-500" onClick={() => setIsOpen(false)}>
+              <Link to="/cart" className="flex items-center text-gray-600 hover:text-orange-500 relative" onClick={() => setIsOpen(false)}>
                 <ShoppingCart className="h-6 w-6" />
                 {totalItems > 0 && (
                   <span className="ml-1 bg-orange-500 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs">

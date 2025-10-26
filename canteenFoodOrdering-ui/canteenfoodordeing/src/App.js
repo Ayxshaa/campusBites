@@ -1,5 +1,6 @@
 import LandingPage from './components/Landingpage';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import TrackOrdersPage from './components/TrackOrdersPage';
 import './App.css';
 import Navbar from './components/Navbar';
 import MenuPage from './components/MenuPage';
@@ -32,6 +33,7 @@ function App() {
           <Route path="/breakfast" element={<Breakfast />} />
           <Route path="/lunch" element={<Lunch />} />
           <Route path="/beverages" element={<Beverages />} />
+<Route path="/track-orders" element={<TrackOrdersPage />} />
         </Routes>
       </CartProvider>
     </BrowserRouter>
