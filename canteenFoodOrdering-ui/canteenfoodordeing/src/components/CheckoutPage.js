@@ -1,6 +1,44 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../components/CartContext';
+import { CheckCircle, XCircle, AlertCircle, X } from 'lucide-react';
+
+// Toast Notification Component
+const Toast = ({ message, type, onClose }) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose();
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  const icons = {
+    success: <CheckCircle className="w-6 h-6" />,
+    error: <XCircle className="w-6 h-6" />,
+    warning: <AlertCircle className="w-6 h-6" />
+  };
+
+  const colors = {
+    success: 'bg-green-500',
+    error: 'bg-red-500',
+    warning: 'bg-orange-500'
+  };
+
+  return (
+    <div className="fixed top-4 right-4 z-50 animate-slideIn">
+      <div className={`${colors[type]} text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 min-w-[320px] max-w-md`}>
+        {icons[type]}
+        <p className="flex-1 font-medium">{message}</p>
+        <button 
+          onClick={onClose}
+          className="hover:bg-white/20 rounded-full p-1 transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
@@ -15,11 +53,21 @@ const CheckoutPage = () => {
   
   const [isProcessing, setIsProcessing] = useState(false);
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+  const [toast, setToast] = useState(null);
   
   // Razorpay configuration
   const RAZORPAY_KEY_ID = "rzp_test_RXg0a5Bf1QLwtk";
-  const CREATE_ORDER_URL = "http://localhost:8000/api/create-order";
-  const VERIFY_PAYMENT_URL = "http://localhost:8000/api/verify-payment";
+  const CREATE_ORDER_URL = "http://localhost:8080/api/create-order";
+  const VERIFY_PAYMENT_URL = "http://localhost:8080/api/verify-payment";
+  
+  // Toast helper function
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+  };
+
+  const closeToast = () => {
+    setToast(null);
+  };
   
   // Load Razorpay script
   useEffect(() => {
@@ -32,7 +80,7 @@ const CheckoutPage = () => {
     };
     script.onerror = () => {
       console.error('Failed to load Razorpay script');
-      alert('Failed to load payment gateway. Please refresh the page.');
+      showToast('Failed to load payment gateway. Please refresh the page.', 'error');
     };
     document.body.appendChild(script);
 
@@ -94,17 +142,17 @@ const CheckoutPage = () => {
   // Razorpay Payment Integration
   const initiateRazorpayPayment = async () => {
     if (!customerInfo.name || !customerInfo.email || !customerInfo.phone) {
-      alert('Please fill in all customer details');
+      showToast('Please fill in all customer details', 'warning');
       return;
     }
     
     if (cartItems.length === 0) {
-      alert('Your cart is empty. Please add items before placing an order.');
+      showToast('Your cart is empty. Please add items before placing an order.', 'warning');
       return;
     }
 
     if (!razorpayLoaded) {
-      alert('Payment gateway is still loading. Please wait a moment.');
+      showToast('Payment gateway is still loading. Please wait a moment.', 'warning');
       return;
     }
     
@@ -179,17 +227,19 @@ const CheckoutPage = () => {
               
               saveOrderToLocalStorage(orderData);
               
-              alert(`Payment Verified Successfully! Thank you ${customerInfo.name}!`);
+              showToast(`Payment verified successfully! Thank you ${customerInfo.name}!`, 'success');
               clearCart();
               
-              // Navigate to track orders page
-              navigate('/track-orders');
+              // Navigate to track orders page after a short delay
+              setTimeout(() => {
+                navigate('/track-orders');
+              }, 2000);
             } else {
-              alert("Payment verification failed!");
+              showToast('Payment verification failed. Please contact support.', 'error');
             }
           } catch (error) {
             console.error("Verification error:", error);
-            alert("Could not verify payment. Please contact support.");
+            showToast('Could not verify payment. Please contact support.', 'error');
           } finally {
             setIsProcessing(false);
           }
@@ -215,7 +265,7 @@ const CheckoutPage = () => {
       
     } catch (error) {
       console.error("Error creating order:", error);
-      alert("Could not connect to payment server. Please try again.");
+      showToast('Could not connect to payment server. Please try again.', 'error');
       setIsProcessing(false);
     }
   };
@@ -227,6 +277,14 @@ const CheckoutPage = () => {
   
   return (
     <div className="bg-gray-50 min-h-screen p-6">
+      {toast && (
+        <Toast 
+          message={toast.message} 
+          type={toast.type} 
+          onClose={closeToast}
+        />
+      )}
+      
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-800 mb-6">Checkout</h1>
         
@@ -386,6 +444,22 @@ const CheckoutPage = () => {
           </div>
         )}
       </div>
+      
+      <style>{`
+        @keyframes slideIn {
+          from {
+            transform: translateX(400px);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        .animate-slideIn {
+          animation: slideIn 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 };

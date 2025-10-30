@@ -283,7 +283,7 @@ const LandingPage = () => {
             <div>
               <h3 className="text-white text-lg font-bold mb-4">Contact Us</h3>
               <address className="text-gray-300 not-italic">
-                <p>CSE 3rd year, Room 101</p>
+                <p>CSE 4th year</p>
                 <p>University Campus</p>
                 <p>Email: canteen@campusbites.com</p>
                 <p>Phone: (123) 456-7890</p>
