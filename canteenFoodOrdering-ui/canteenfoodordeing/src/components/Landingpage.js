@@ -3,18 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import ImageCarousel from './ImageCarousel';
 import { useCart } from './CartContext'; // Import the useCart hook
 import { ShoppingCart } from 'lucide-react'; // Import the cart icon
+import Categories from './Categories';
 
 const LandingPage = () => {
   const navigate = useNavigate();
   // Use the cart context to access cart functionality
   const { addToCart } = useCart();
 
-  // Sample food categories
-  const categories = [
-    { name: 'Lunch', image: 'images/lunch.jpg', count: 18 },
-    { name: 'Fast Food', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSuDicjACF8jqE3vr1WxFItibReuZEnXbVclA&s', count: 10 },
-    { name: 'Beverages', image: 'images/beverages.jpeg', count: 8 },
-  ];
+  
 
   // Popular items - Now with proper structure to match MenuPage items
   const popularItems = [
@@ -151,46 +147,49 @@ const LandingPage = () => {
         </div>
       </div>
 
-      {/* New Features Section */}
+      {/* New Features Section - styled to match hero */}
       <section id="features" className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-extrabold text-center text-gray-900 sm:text-4xl mb-12">
-            Why Choose <span className="text-orange-500">Campus Bites</span>
+          <h2 className="text-center mb-12">
+            <span className="block text-3xl sm:text-4xl font-extrabold text-gray-900" style={{ fontFamily: 'Merriweather, serif' }}>
+              Why Choose <span className="text-orange-600">Campus Bites</span>
+            </span>
           </h2>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-              <div className="text-4xl mb-4">🍔</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Diverse Food Options</h3>
+            <div className="group relative bg-gradient-to-b from-white to-orange-50 p-6 rounded-2xl shadow-md ring-1 ring-orange-100 hover:shadow-lg hover:-translate-y-0.5 transition duration-300">
+              <div className="mb-4 h-12 w-12 rounded-full bg-orange-100 text-orange-600 grid place-items-center text-2xl">🍔</div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Merriweather, serif' }}>Diverse Food Options</h3>
               <p className="text-gray-600">From healthy salads to comfort food, find all your favorite campus dining options in one place.</p>
             </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-              <div className="text-4xl mb-4">⏱️</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Fast Delivery</h3>
+
+            <div className="group relative bg-gradient-to-b from-white to-orange-50 p-6 rounded-2xl shadow-md ring-1 ring-orange-100 hover:shadow-lg hover:-translate-y-0.5 transition duration-300">
+              <div className="mb-4 h-12 w-12 rounded-full bg-orange-100 text-orange-600 grid place-items-center text-2xl">⏱️</div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Merriweather, serif' }}>Fast Delivery</h3>
               <p className="text-gray-600">Get your food in minutes. Our campus network ensures you're never waiting long.</p>
             </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-              <div className="text-4xl mb-4">💰</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Student Discounts</h3>
+
+            <div className="group relative bg-gradient-to-b from-white to-orange-50 p-6 rounded-2xl shadow-md ring-1 ring-orange-100 hover:shadow-lg hover:-translate-y-0.5 transition duration-300">
+              <div className="mb-4 h-12 w-12 rounded-full bg-orange-100 text-orange-600 grid place-items-center text-2xl">💰</div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Merriweather, serif' }}>Student Discounts</h3>
               <p className="text-gray-600">Enjoy exclusive deals and promotions only available to campus residents and students.</p>
             </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-              <div className="text-4xl mb-4">📱</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Easy to Use</h3>
+
+            <div className="group relative bg-gradient-to-b from-white to-orange-50 p-6 rounded-2xl shadow-md ring-1 ring-orange-100 hover:shadow-lg hover:-translate-y-0.5 transition duration-300">
+              <div className="mb-4 h-12 w-12 rounded-full bg-orange-100 text-orange-600 grid place-items-center text-2xl">📱</div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Merriweather, serif' }}>Easy to Use</h3>
               <p className="text-gray-600">Our intuitive app makes ordering food as simple as sending a text. Just a few taps and you're done!</p>
             </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-              <div className="text-4xl mb-4">🔔</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Real-time Tracking</h3>
+
+            <div className="group relative bg-gradient-to-b from-white to-orange-50 p-6 rounded-2xl shadow-md ring-1 ring-orange-100 hover:shadow-lg hover:-translate-y-0.5 transition duration-300">
+              <div className="mb-4 h-12 w-12 rounded-full bg-orange-100 text-orange-600 grid place-items-center text-2xl">🔔</div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Merriweather, serif' }}>Real-time Tracking</h3>
               <p className="text-gray-600">Follow your order from kitchen to delivery with our real-time tracking system.</p>
             </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-              <div className="text-4xl mb-4">🎁</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Rewards Program</h3>
+
+            <div className="group relative bg-gradient-to-b from-white to-orange-50 p-6 rounded-2xl shadow-md ring-1 ring-orange-100 hover:shadow-lg hover:-translate-y-0.5 transition duration-300">
+              <div className="mb-4 h-12 w-12 rounded-full bg-orange-100 text-orange-600 grid place-items-center text-2xl">🎁</div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Merriweather, serif' }}>Rewards Program</h3>
               <p className="text-gray-600">Earn points with every order and redeem them for free food, discounts, and exclusive perks.</p>
             </div>
           </div>
@@ -198,41 +197,7 @@ const LandingPage = () => {
       </section>
 
       {/* Categories */}
-      <div className="py-12 bg-orange-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-              Browse Our Categories
-            </h2>
-            <p className="mt-4 max-w-2xl mx-auto text-xl text-gray-500">
-              Find exactly what you're craving
-            </p>
-          </div>
-
-          <div className="mt-10 flex justify-center">
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 max-w-4xl">
-              {categories.map((category, index) => (
-                <div key={index} className="group relative bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-                  <div className="aspect-w-3 aspect-h-2">
-                    <img
-                      src={category.image}
-                      alt={category.name}
-                      className="w-full h-48 object-cover group-hover:opacity-75 transition-opacity duration-300"
-                    />
-                  </div>
-                  <div className="p-4">
-                    <h3 className="text-lg font-medium text-gray-900">{category.name}</h3>
-                    <p className="mt-1 text-sm text-gray-500">{category.count} items</p>
-                    <a href={`/category/${category.name.toLowerCase()}`} className="mt-2 block text-orange-500 hover:text-orange-600 font-medium">
-                      Browse &rarr;
-                    </a>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+      <Categories />
 
       {/* Popular Items */}
       <div className="py-12 bg-white">
