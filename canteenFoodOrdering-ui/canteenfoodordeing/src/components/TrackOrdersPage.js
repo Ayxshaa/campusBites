@@ -1,83 +1,94 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const TrackOrdersPage = () => {
+const MY_ORDERS_URL = "http://localhost:8080/api/admin/my-orders"; // Using the new endpoint
+
+const TrackOrdersPage = () => { // 
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [loading, setLoading] = useState(true); // [cite: 157]
+  const [selectedOrder, setSelectedOrder] = useState(null); // [cite: 157]
+  
+  // Get the customer's phone number from local storage
+  const customerPhone = useMemo(() => localStorage.getItem('customerPhone'), []);
 
-  // Simulated order statuses
+  // [Order statuses map remains the same: 158]
   const orderStatuses = {
-    pending: { label: 'Order Placed', color: 'bg-yellow-500', icon: '📝' },
-    confirmed: { label: 'Confirmed', color: 'bg-blue-500', icon: '✅' },
-    preparing: { label: 'Preparing', color: 'bg-orange-500', icon: '👨‍🍳' },
-    ready: { label: 'Ready for Pickup', color: 'bg-green-500', icon: '🎉' },
-    completed: { label: 'Completed', color: 'bg-gray-500', icon: '✔️' },
-    cancelled: { label: 'Cancelled', color: 'bg-red-500', icon: '❌' }
+    // New status for live orders
+    LIVE: { label: 'Order Placed', color: 'bg-yellow-500', icon: '📝' },
+    // Past order statuses
+    COMPLETED: { label: 'Completed', color: 'bg-green-500', icon: '✔️' },
+    REJECTED: { label: 'Cancelled', color: 'bg-red-500', icon: '❌' }
   };
-
+  
+  // [useEffect remains: 159]
   useEffect(() => {
-    // Load orders from localStorage (simulated)
     loadOrders();
-  }, []);
+  }, [customerPhone]); // Re-run if customerPhone changes (though it shouldn't)
 
-  const loadOrders = () => {
-    setLoading(true);
-    
-    // Get orders from localStorage
-    const savedOrders = localStorage.getItem('customerOrders');
-    if (savedOrders) {
-      const parsedOrders = JSON.parse(savedOrders);
-      // Sort by date (newest first)
-      const sortedOrders = parsedOrders.sort((a, b) => 
-        new Date(b.orderDate) - new Date(a.orderDate)
-      );
-      setOrders(sortedOrders);
-    } else {
-      // Demo orders for testing
-      const demoOrders = [
-        {
-          id: 'ORD001',
-          orderDate: new Date().toISOString(),
-          status: 'preparing',
-          items: [
-            { name: 'Margherita Pizza', quantity: 2, price: 299 },
-            { name: 'Garlic Bread', quantity: 1, price: 99 }
-          ],
-          totalAmount: 697,
-          customerName: 'John Doe',
-          customerPhone: '9876543210',
-          paymentId: 'pay_xyz123'
-        },
-        {
-          id: 'ORD002',
-          orderDate: new Date(Date.now() - 86400000).toISOString(),
-          status: 'completed',
-          items: [
-            { name: 'Veggie Burger', quantity: 1, price: 149 }
-          ],
-          totalAmount: 149,
-          customerName: 'John Doe',
-          customerPhone: '9876543210',
-          paymentId: 'pay_abc456'
-        }
-      ];
-      setOrders(demoOrders);
+  const loadOrders = async () => {
+    if (!customerPhone) {
+        console.warn("No customer phone found in local storage.");
+        setLoading(false);
+        return;
     }
     
-    setLoading(false);
-  };
+    setLoading(true); // 
+    try {
+        const response = await fetch(`${MY_ORDERS_URL}?phone=${customerPhone}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch orders');
+        }
+        const data = await response.json(); // This will be { liveOrders: [], pastOrders: [] }
+
+        // --- NEW: Process and combine orders ---
+        
+        // Process live orders
+        const liveOrders = data.liveOrders.map(order => ({
+            ...order,
+            id: `L-${order.id}`, // Add prefix to avoid ID conflicts
+            status: 'LIVE',
+            items: JSON.parse(order.itemsJson || "[]"),
+            totalAmount: order.totalAmount
+        }));
+        
+        // Process past orders
+        const pastOrders = data.pastOrders.map(order => ({
+            ...order,
+            id: `P-${order.id}`, // Add prefix
+            status: order.status, // "COMPLETED" or "REJECTED"
+            items: JSON.parse(order.itemsJson || "[]"),
+            totalAmount: order.totalAmount
+        }));
+
+        // Combine and sort by date (newest first)
+        const allOrders = [...liveOrders, ...pastOrders].sort((a, b) => 
+            new Date(b.orderDate) - new Date(a.orderDate)
+        );
+        
+        setOrders(allOrders);
+        // --- END NEW ---
+
+    } catch (error) {
+        console.error("Error loading orders:", error);
+    } finally {
+        setLoading(false);
+    }
+  }; // [End of loadOrders: 168]
+
+  // [getStatusProgress, formatDate, handleViewDetails, 
+  //  handleCloseModal, handleBackToMenu remain the same: 169-175]
 
   const getStatusProgress = (status) => {
-    const statusOrder = ['pending', 'confirmed', 'preparing', 'ready', 'completed'];
-    const currentIndex = statusOrder.indexOf(status);
-    return ((currentIndex + 1) / statusOrder.length) * 100;
+    if (status === 'LIVE') return 33;
+    if (status === 'COMPLETED') return 100;
+    if (status === 'REJECTED') return 0;
+    return 0; // Default
   };
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString) => { // [cite: 171]
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-IN', {
+    return date.toLocaleDateString('en-IN', { // [cite: 172]
       day: 'numeric',
       month: 'short',
       year: 'numeric',
@@ -86,36 +97,41 @@ const TrackOrdersPage = () => {
     });
   };
 
-  const handleViewDetails = (order) => {
+  const handleViewDetails = (order) => { // [cite: 173]
     setSelectedOrder(order);
   };
-
-  const handleCloseModal = () => {
+  
+  const handleCloseModal = () => { // [cite: 174]
     setSelectedOrder(null);
   };
-
-  const handleBackToMenu = () => {
+  
+  const handleBackToMenu = () => { // [cite: 175]
     navigate('/menu');
   };
 
+  // [Filter functions are simplified as we only have 3 statuses]
   const filterOrders = (filterStatus) => {
-    if (filterStatus === 'all') {
-      loadOrders();
-    } else if (filterStatus === 'active') {
-      const activeOrders = orders.filter(order => 
-        ['pending', 'confirmed', 'preparing', 'ready'].includes(order.status)
-      );
-      setOrders(activeOrders);
-    } else {
-      const filteredOrders = orders.filter(order => order.status === filterStatus);
-      setOrders(filteredOrders);
-    }
-  };
+    // We reload from scratch as filtering logic is simple
+    loadOrders().then(() => {
+        if (filterStatus === 'all') {
+            return; // loadOrders already set all
+        }
+        setOrders(prevOrders => prevOrders.filter(order => {
+            if (filterStatus === 'active') {
+                return order.status === 'LIVE';
+            }
+            return order.status === filterStatus;
+        }));
+    });
+  }; // [End of filterOrders: 179]
 
+  // --- JSX (HTML) Section ---
+  // Most of this is the same, just updated to use the new data structure
+  
   return (
     <div className="bg-gray-50 min-h-screen p-6">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
+        {/* Header [cite: 180] */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-800">Track Your Orders</h1>
           <button
@@ -126,7 +142,7 @@ const TrackOrdersPage = () => {
           </button>
         </div>
 
-        {/* Filter Buttons */}
+        {/* Filter Buttons [cite: 181-183] */}
         <div className="flex flex-wrap gap-2 mb-6">
           <button
             onClick={() => filterOrders('all')}
@@ -141,69 +157,64 @@ const TrackOrdersPage = () => {
             Active Orders
           </button>
           <button
-            onClick={() => filterOrders('preparing')}
-            className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-lg"
-          >
-            Preparing
-          </button>
-          <button
-            onClick={() => filterOrders('completed')}
+             onClick={() => filterOrders('COMPLETED')}
             className="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg"
           >
             Completed
           </button>
         </div>
 
-        {/* Loading State */}
+        {/* Loading State [cite: 184] */}
         {loading ? (
           <div className="text-center py-10">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
             <p className="mt-4 text-gray-600">Loading orders...</p>
           </div>
-        ) : orders.length === 0 ? (
+        ) : orders.length === 0 ? ( // [cite: 185]
           <div className="text-center py-10 bg-white rounded-lg shadow">
-            <p className="text-gray-600 mb-4">No orders found</p>
+            <p className="text-gray-600 mb-4">{customerPhone ? "No orders found for this account." : "No customer phone found. Please place an order first."}</p>
             <button
               onClick={handleBackToMenu}
               className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-6 rounded-lg"
             >
-              Start Ordering
+             Start Ordering
             </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {orders.map((order) => (
               <div key={order.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                {/* Order Header */}
-                <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white p-4">
+              
+                {/* Order Header [cite: 187] */}
+                <div className={`text-white p-4 ${orderStatuses[order.status].color}`}>
                   <div className="flex justify-between items-center mb-2">
-                    <span className="font-bold text-lg">{order.id}</span>
-                    <span className={`${orderStatuses[order.status].color} text-white px-3 py-1 rounded-full text-sm font-medium`}>
-                      {orderStatuses[order.status].icon} {orderStatuses[order.status].label}
+                    <span className="font-bold text-lg">Order #{order.id}</span>
+                    <span className={`bg-white bg-opacity-20 text-white px-3 py-1 rounded-full text-sm font-medium`}>
+                       {orderStatuses[order.status].icon} {orderStatuses[order.status].label}
                     </span>
                   </div>
                   <p className="text-sm opacity-90">{formatDate(order.orderDate)}</p>
                 </div>
 
-                {/* Order Body */}
+                {/* Order Body [cite: 189] */}
                 <div className="p-4">
-                  {/* Items Summary */}
+                  {/* Items Summary [cite: 190] */}
                   <div className="mb-4">
                     <h3 className="font-semibold text-gray-700 mb-2">Items ({order.items.length})</h3>
-                    <div className="space-y-1">
+                     <div className="space-y-1">
                       {order.items.slice(0, 2).map((item, index) => (
                         <div key={index} className="flex justify-between text-sm text-gray-600">
                           <span>{item.quantity}x {item.name}</span>
-                          <span>₹{(item.price * item.quantity).toFixed(2)}</span>
+                           <span>₹{(item.price * item.quantity).toFixed(2)}</span>
                         </div>
                       ))}
                       {order.items.length > 2 && (
-                        <p className="text-sm text-orange-500">+{order.items.length - 2} more items</p>
+                         <p className="text-sm text-orange-500">+{order.items.length - 2} more items</p>
                       )}
                     </div>
                   </div>
 
-                  {/* Total Amount */}
+                  {/* Total Amount [cite: 193] */}
                   <div className="border-t pt-3 mb-4">
                     <div className="flex justify-between items-center">
                       <span className="font-semibold text-gray-700">Total</span>
@@ -211,23 +222,23 @@ const TrackOrdersPage = () => {
                     </div>
                   </div>
 
-                  {/* Progress Bar */}
-                  {order.status !== 'cancelled' && order.status !== 'completed' && (
-                    <div className="mb-4">
+                  {/* Progress Bar [cite: 195] */}
+                  {order.status !== 'REJECTED' && (
+                   <div className="mb-4">
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
-                          className="bg-gradient-to-r from-orange-500 to-green-500 h-2 rounded-full transition-all duration-500"
-                          style={{ width: `${getStatusProgress(order.status)}%` }}
+                          className={`h-2 rounded-full transition-all duration-500 ${order.status === 'LIVE' ? 'bg-yellow-500' : 'bg-green-500'}`}
+                           style={{ width: `${getStatusProgress(order.status)}%` }}
                         ></div>
                       </div>
                     </div>
-                  )}
+                   )}
 
-                  {/* View Details Button */}
+                  {/* View Details Button [cite: 197] */}
                   <button
                     onClick={() => handleViewDetails(order)}
                     className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 rounded-lg transition-colors"
-                  >
+                   >
                     View Details
                   </button>
                 </div>
@@ -236,47 +247,45 @@ const TrackOrdersPage = () => {
           </div>
         )}
 
-        {/* Order Details Modal */}
+        {/* Order Details Modal [cite: 199] */}
         {selectedOrder && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              {/* Modal Header */}
-              <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white p-6">
+              
+              {/* Modal Header [cite: 200] */}
+              <div className={`p-6 text-white ${orderStatuses[selectedOrder.status].color}`}>
                 <div className="flex justify-between items-center">
                   <div>
-                    <h2 className="text-2xl font-bold">{selectedOrder.id}</h2>
+                    <h2 className="text-2xl font-bold">Order #{selectedOrder.id}</h2>
                     <p className="text-sm opacity-90">{formatDate(selectedOrder.orderDate)}</p>
-                  </div>
+                   </div>
                   <button
                     onClick={handleCloseModal}
                     className="text-white hover:text-gray-200 text-2xl font-bold"
                   >
-                    ×
+                   ×
                   </button>
                 </div>
               </div>
 
-              {/* Modal Body */}
+              {/* Modal Body [cite: 203-212] */}
               <div className="p-6">
-                {/* Status */}
                 <div className="mb-6">
                   <h3 className="font-semibold text-gray-700 mb-2">Order Status</h3>
                   <div className={`${orderStatuses[selectedOrder.status].color} text-white px-4 py-2 rounded-lg inline-block`}>
                     {orderStatuses[selectedOrder.status].icon} {orderStatuses[selectedOrder.status].label}
-                  </div>
+                   </div>
                 </div>
 
-                {/* Customer Info */}
                 <div className="mb-6">
                   <h3 className="font-semibold text-gray-700 mb-2">Customer Information</h3>
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-gray-600"><strong>Name:</strong> {selectedOrder.customerName}</p>
+                     <p className="text-gray-600"><strong>Name:</strong> {selectedOrder.customerName}</p>
                     <p className="text-gray-600"><strong>Phone:</strong> {selectedOrder.customerPhone}</p>
                   </div>
                 </div>
 
-                {/* Items */}
-                <div className="mb-6">
+                 <div className="mb-6">
                   <h3 className="font-semibold text-gray-700 mb-2">Order Items</h3>
                   <div className="space-y-2">
                     {selectedOrder.items.map((item, index) => (
@@ -284,40 +293,35 @@ const TrackOrdersPage = () => {
                         <div>
                           <p className="font-medium text-gray-800">{item.name}</p>
                           <p className="text-sm text-gray-600">Quantity: {item.quantity} × ₹{item.price.toFixed(2)}</p>
-                        </div>
+                         </div>
                         <p className="font-semibold text-green-600">₹{(item.price * item.quantity).toFixed(2)}</p>
                       </div>
                     ))}
                   </div>
-                </div>
+                 </div>
 
-                {/* Payment Info */}
                 <div className="border-t pt-4">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-gray-600">Subtotal</span>
-                    <span className="text-gray-800">₹{selectedOrder.totalAmount.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between items-center mb-2">
                     <span className="text-gray-600">Payment ID</span>
-                    <span className="text-sm text-gray-500">{selectedOrder.paymentId}</span>
-                  </div>
+                    <span className="text-sm text-gray-500">{selectedOrder.razorpayPaymentId}</span>
+                   </div>
                   <div className="flex justify-between items-center pt-2 border-t">
                     <span className="font-bold text-lg text-gray-800">Total</span>
                     <span className="font-bold text-xl text-green-600">₹{selectedOrder.totalAmount.toFixed(2)}</span>
-                  </div>
+                   </div>
                 </div>
               </div>
 
-              {/* Modal Footer */}
+              {/* Modal Footer [cite: 213] */}
               <div className="bg-gray-50 p-4 flex justify-end">
                 <button
-                  onClick={handleCloseModal}
+                   onClick={handleCloseModal}
                   className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-6 rounded-lg"
                 >
                   Close
                 </button>
               </div>
-            </div>
+             </div>
           </div>
         )}
       </div>

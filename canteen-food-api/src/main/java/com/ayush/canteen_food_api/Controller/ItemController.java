@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ayush.canteen_food_api.Model.Item;
 import com.ayush.canteen_food_api.Service.ItemService;
+import com.ayush.canteen_food_api.dto.Item;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController

@@ -1,4 +1,4 @@
-package com.ayush.canteen_food_api.Model;
+package com.ayush.canteen_food_api.dto;
 
 public class Item {
     private long id;

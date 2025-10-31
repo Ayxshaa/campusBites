@@ -1,8 +1,8 @@
 package com.ayush.canteen_food_api.Service;
 
-import com.ayush.canteen_food_api.Model.Item;
-
 import java.util.List;
+
+import com.ayush.canteen_food_api.dto.Item;
 
 public interface ItemService {
     Item addItem(Item item);
