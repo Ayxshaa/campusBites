@@ -1,8 +1,9 @@
 package com.ayush.canteen_food_api.Service;
 
 import com.ayush.canteen_food_api.Entity.ItemEntity;
-import com.ayush.canteen_food_api.Model.Item;
 import com.ayush.canteen_food_api.Repository.ItemRepository;
+import com.ayush.canteen_food_api.dto.Item;
+
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 

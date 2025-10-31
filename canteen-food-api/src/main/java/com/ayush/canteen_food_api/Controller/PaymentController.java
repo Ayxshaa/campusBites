@@ -1,8 +1,9 @@
-package com.ayush.canteen_food_api.Controller; // <-- Your package name might be different
+package com.ayush.canteen_food_api.Controller;
 
 import java.util.Map;
 
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -17,6 +18,12 @@ import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
 import com.razorpay.Utils;
 
+// --- NEW IMPORTS ---
+import com.ayush.canteen_food_api.Service.AdminOrderService;
+import com.ayush.canteen_food_api.dto.VerifiedOrderRequest;
+// --- END NEW IMPORTS ---
+
+
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api")
@@ -28,14 +35,18 @@ public class PaymentController {
     @Value("${razorpay.key.secret}")
     private String keySecret;
 
-    // === ENDPOINT 1: CREATE ORDER ===
+    // --- NEW INJECTION ---
+    @Autowired
+    private AdminOrderService adminOrderService;
+    // --- END NEW INJECTION ---
+
+    // === ENDPOINT 1: CREATE ORDER (No changes needed here) ===
     @PostMapping("/create-order")
     @ResponseBody
     public String createOrder(@RequestBody Map<String, Object> data) {
         System.out.println("--- Create Order API hit ---");
         try {
-//            int amount = Integer.parseInt(data.get("amount").toString()) * 100;
-        	int amount = (int) Math.round(Double.parseDouble(data.get("amount").toString()) * 100);
+            int amount = (int) Math.round(Double.parseDouble(data.get("amount").toString()) * 100);
             String receipt = data.get("receipt").toString();
 
             RazorpayClient razorpayClient = new RazorpayClient(keyId, keySecret);
@@ -46,7 +57,6 @@ public class PaymentController {
             orderRequest.put("receipt", receipt);
 
             Order order = razorpayClient.orders.create(orderRequest);
-
             System.out.println("Order created: " + order.toString());
             return order.toString();
 
@@ -55,17 +65,18 @@ public class PaymentController {
             return "Error creating order: " + e.getMessage();
         }
     }
-    
-    // === ENDPOINT 2: VERIFY PAYMENT ===
+
+
+    // === ENDPOINT 2: VERIFY PAYMENT (MODIFIED) ===
     @PostMapping("/verify-payment")
-    public ResponseEntity<String> verifyPayment(@RequestBody Map<String, String> paymentDetails) {
-        
+    public ResponseEntity<String> verifyPayment(@RequestBody VerifiedOrderRequest orderRequest) {
+
         System.out.println("--- Verify Payment API hit ---");
         
-        String razorpayOrderId = paymentDetails.get("razorpay_order_id");
-        String razorpayPaymentId = paymentDetails.get("razorpay_payment_id");
-        String razorpaySignature = paymentDetails.get("razorpay_signature");
-        
+        String razorpayOrderId = orderRequest.getRazorpay_order_id();
+        String razorpayPaymentId = orderRequest.getRazorpay_payment_id();
+        String razorpaySignature = orderRequest.getRazorpay_signature();
+
         try {
             // 1. Create a JSONObject with the payment details
             JSONObject options = new JSONObject();
@@ -74,16 +85,29 @@ public class PaymentController {
             options.put("razorpay_signature", razorpaySignature);
 
             // 2. Use the correct method signature
-            // This method returns `void` and will throw an exception if the
-            // signature verification fails.
             Utils.verifyPaymentSignature(options, keySecret);
-            
+
             // 3. If no exception is thrown, the signature is valid.
             System.out.println("Payment Verified Successfully!");
-            return ResponseEntity.ok("Payment verified successfully");
+
+            // --- NEW LOGIC: SAVE TO DATABASE ---
+            // 4. After verification, save the order to the database.
+            try {
+                adminOrderService.saveLiveOrder(orderRequest);
+                System.out.println("Order saved to live_orders database.");
+            } catch (Exception e) {
+                System.err.println("CRITICAL: Payment verified but FAILED to save order to database!");
+                e.printStackTrace();
+                // Even if DB save fails, we must tell the client the payment was OK
+                // But we must log this error aggressively.
+                return ResponseEntity.status(500).body("Payment verified but order save failed. Contact support.");
+            }
+            // --- END NEW LOGIC ---
+
+            return ResponseEntity.ok("Payment verified and order saved successfully");
 
         } catch (RazorpayException e) {
-            // 4. If an exception is thrown, the signature is invalid.
+            // 5. If an exception is thrown, the signature is invalid.
             System.err.println("Signature verification failed! " + e.getMessage());
             return ResponseEntity.status(400).body("Payment verification failed: Invalid signature");
         }

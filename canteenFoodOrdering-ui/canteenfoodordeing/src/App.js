@@ -14,6 +14,7 @@ import Snacks from './components/Snacks';
 import Breakfast from './components/Breakfast';
 import Lunch from './components/Lunch';
 import Beverages from './components/Beverages';
+import AdminDashboard from './admin/AdminDashboard'
 
 function App() {
   return (
@@ -28,7 +29,7 @@ function App() {
           <Route path="/specials" element={<TodaySpecial/>}/>
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/cart" element={<CartPage />} />
-          <Route path="/admin" element={<Admin />} />
+          <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/snacks" element={<Snacks />} />
           <Route path="/breakfast" element={<Breakfast />} />
           <Route path="/lunch" element={<Lunch />} />

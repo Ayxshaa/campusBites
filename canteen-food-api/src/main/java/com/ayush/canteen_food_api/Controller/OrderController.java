@@ -1,7 +1,8 @@
 package com.ayush.canteen_food_api.Controller;
 
-import com.ayush.canteen_food_api.Model.Order;
 import com.ayush.canteen_food_api.Service.OrderService;
+import com.ayush.canteen_food_api.dto.Order;
+
 import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin(origins = "http://localhost:3000")
