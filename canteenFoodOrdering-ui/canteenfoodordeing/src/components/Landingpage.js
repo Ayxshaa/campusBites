@@ -83,29 +83,71 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Section */}
-      <div className="relative bg-orange-500">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20 lg:py-24">
-          <div className="lg:grid lg:grid-cols-2 lg:gap-8 items-center">
+      {/* Hero Section - redesigned to match the screenshot */}
+      <div className="relative bg-gradient-to-r from-orange-50 via-orange-50 to-orange-100">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 py-14 md:py-18 lg:py-20">
+          <div className="lg:grid lg:grid-cols-2 lg:gap-10 items-center">
+            {/* Left copy */}
             <div>
-              <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">
-                Campus Bites: <span className="block">Fast, Fresh & Delicious</span>
+              <h1 className="font-extrabold tracking-tight text-gray-900 leading-tight" style={{ fontFamily: 'Merriweather, serif' }}>
+                <span className="block text-4xl md:text-5xl lg:text-6xl">Campus Bites:</span>
+                <span className="block mt-2 text-4xl md:text-5xl lg:text-6xl">Fast, Fresh &amp; Delicious</span>
               </h1>
-              <p className="mt-4 max-w-lg text-lg text-orange-100">
+              <p className="mt-6 max-w-xl text-base md:text-lg text-gray-600">
                 Skip the lines and order ahead! Get your favorite campus food delivered or ready for pickup when you arrive.
               </p>
-              <div className="mt-8 space-x-4">
-                <button onClick={()=> navigate("/menu")} className="inline-block bg-white text-orange-600 font-bold py-3 px-6 rounded-lg shadow-md hover:bg-orange-50 transition duration-300">
+              <div className="mt-8 flex items-center space-x-5">
+                <button onClick={() => navigate('/menu')} className="bg-red-500 text-white font-semibold py-3 px-6 rounded-full shadow-md hover:bg-red-600 transition">
                   Order Now
+                </button>
+                <button aria-label="Play" className="h-11 w-11 rounded-full bg-black text-white grid place-items-center shadow-md hover:opacity-90">
+                  <span className="ml-0.5">▶</span>
                 </button>
               </div>
             </div>
-            <div className="mt-12 lg:mt-0 lg:flex justify-end">
-              <div className="p-6">
-                <ImageCarousel />
+
+            {/* Right visual */}
+            <div className="relative mt-12 lg:mt-0">
+              {/* Bowl image */}
+              <div className="relative mx-auto w-72 h-72 sm:w-80 sm:h-80 lg:w-96 lg:h-96 rounded-full overflow-hidden ring-8 ring-orange-200 shadow-xl">
+                <img src="images/main.jpeg" alt="Healthy bowl" className="w-full h-full object-cover" />
+              </div>
+
+              {/* 20% Off badge */}
+              <div className="absolute -top-4 -right-2 sm:-right-6 lg:-right-4 bg-lime-300 text-gray-800 rounded-full w-20 h-20 sm:w-24 sm:h-24 grid place-items-center font-extrabold shadow-md" style={{ fontFamily: 'Merriweather, serif' }}>
+                <div className="text-center">
+                  <div className="text-xl sm:text-2xl">20%</div>
+                  <div className="text-xs sm:text-sm">Off</div>
+                </div>
+              </div>
+
+              {/* Info card overlapping */}
+              <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur rounded-2xl shadow-xl px-5 py-4 w-[90%] sm:w-80">
+                <div className="flex items-start space-x-3">
+                  <div className="text-gray-800 text-xl">🚚</div>
+                  <div>
+                    <p className="font-semibold text-gray-900">Fast Delivery</p>
+                    <p className="text-xs text-gray-500">Promise to Deliver within 90 Mins</p>
+                  </div>
+                </div>
+                <div className="mt-4 flex items-start space-x-3">
+                  <div className="text-gray-800 text-xl">📦</div>
+                  <div>
+                    <p className="font-semibold text-gray-900">Pick Up</p>
+                    <p className="text-xs text-gray-500">Pickup delivery at your doorstep</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Subtle wavy divider at bottom of hero (small waves) */}
+        <div className="absolute inset-x-0 bottom-0 translate-y-6 pointer-events-none">
+          <svg viewBox="0 0 1440 80" xmlns="http://www.w3.org/2000/svg" className="w-full h-16" preserveAspectRatio="none">
+            {/* Slightly larger multi-crest wave */}
+            <path d="M0,40 C120,15 240,65 360,40 C480,15 600,65 720,40 C840,15 960,65 1080,40 C1200,15 1320,65 1440,40 L1440,80 L0,80 Z" fill="#ffffff"></path>
+          </svg>
         </div>
       </div>
 

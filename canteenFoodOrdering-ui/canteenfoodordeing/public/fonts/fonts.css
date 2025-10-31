@@ -1,0 +1,18 @@
+/* Merriweather Variable (normal) */
+@font-face {
+  font-family: 'Merriweather';
+  src: url('./Merriweather/Merriweather-VariableFont_opsz,wdth,wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Merriweather Variable (italic) */
+@font-face {
+  font-family: 'Merriweather';
+  src: url('./Merriweather/Merriweather-Italic-VariableFont_opsz,wdth,wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
