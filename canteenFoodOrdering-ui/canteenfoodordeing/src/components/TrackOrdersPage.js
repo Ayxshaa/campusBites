@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { FileText, CheckCircle2, XCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const MY_ORDERS_URL = "http://localhost:8080/api/admin/my-orders"; // Using the new endpoint
@@ -14,11 +15,9 @@ const TrackOrdersPage = () => { //
 
   // [Order statuses map remains the same: 158]
   const orderStatuses = {
-    // New status for live orders
-    LIVE: { label: 'Order Placed', color: 'bg-yellow-500', icon: '📝' },
-    // Past order statuses
-    COMPLETED: { label: 'Completed', color: 'bg-green-500', icon: '✔️' },
-    REJECTED: { label: 'Cancelled', color: 'bg-red-500', icon: '❌' }
+    LIVE: { label: 'Order Placed', color: 'bg-yellow-500', Icon: FileText },
+    COMPLETED: { label: 'Completed', color: 'bg-green-500', Icon: CheckCircle2 },
+    REJECTED: { label: 'Cancelled', color: 'bg-red-500', Icon: XCircle }
   };
   
   // [useEffect remains: 159]
@@ -189,9 +188,15 @@ const TrackOrdersPage = () => { //
                 <div className={`text-white p-4 ${orderStatuses[order.status].color}`}>
                   <div className="flex justify-between items-center mb-2">
                     <span className="font-bold text-lg">Order #{order.id}</span>
-                    <span className={`bg-white bg-opacity-20 text-white px-3 py-1 rounded-full text-sm font-medium`}>
-                       {orderStatuses[order.status].icon} {orderStatuses[order.status].label}
-                    </span>
+                    {(() => {
+                      const StatusIcon = orderStatuses[order.status].Icon;
+                      return (
+                        <span className={`bg-white bg-opacity-20 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1`}>
+                          {StatusIcon ? <StatusIcon className="h-4 w-4" /> : null}
+                          {orderStatuses[order.status].label}
+                        </span>
+                      );
+                    })()}
                   </div>
                   <p className="text-sm opacity-90">{formatDate(order.orderDate)}</p>
                 </div>
@@ -272,9 +277,15 @@ const TrackOrdersPage = () => { //
               <div className="p-6">
                 <div className="mb-6">
                   <h3 className="font-semibold text-gray-700 mb-2">Order Status</h3>
-                  <div className={`${orderStatuses[selectedOrder.status].color} text-white px-4 py-2 rounded-lg inline-block`}>
-                    {orderStatuses[selectedOrder.status].icon} {orderStatuses[selectedOrder.status].label}
-                   </div>
+                  {(() => {
+                    const ModalStatusIcon = orderStatuses[selectedOrder.status].Icon;
+                    return (
+                      <div className={`${orderStatuses[selectedOrder.status].color} text-white px-4 py-2 rounded-lg inline-flex items-center gap-2`}>
+                        {ModalStatusIcon ? <ModalStatusIcon className="h-5 w-5" /> : null}
+                        {orderStatuses[selectedOrder.status].label}
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 <div className="mb-6">
