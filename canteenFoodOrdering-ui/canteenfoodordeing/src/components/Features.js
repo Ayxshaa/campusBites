@@ -64,7 +64,17 @@ const Features = () => {
   }, []);
 
   return (
-    <section id="features" className="py-16 bg-white" ref={sectionRef}>
+    <section id="features" className="py-16 bg-white relative overflow-hidden" ref={sectionRef}>
+      {/* bottom gradient overlay */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute bottom-0 right-0 h-1/2 w-1/3"
+        style={{
+          background: 'linear-gradient(0deg, rgba(196,72,20,0.85) 0%, rgba(196,72,20,0.55) 35%, rgba(196,72,20,0.2) 65%, rgba(196,72,20,0) 100%)',
+          maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 65%, rgba(0,0,0,0) 100%)',
+          WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 65%, rgba(0,0,0,0) 100%)'
+        }}
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 
           ref={titleRef}
@@ -86,7 +96,7 @@ const Features = () => {
             return (
               <div
                 key={index}
-                className={`group relative p-6 rounded-2xl shadow-md ring-1 ring-orange-100 bg-white/80 backdrop-blur-sm hover:shadow-lg hover:-translate-y-0.5 transition duration-300 ${
+                className={`group relative p-5 rounded-2xl shadow-md ring-1 ring-orange-100 bg-white/80 backdrop-blur-sm hover:shadow-lg hover:-translate-y-0.5 transition duration-300 max-w-md w-full mx-auto ${
                   isVisible
                     ? isEven
                       ? 'animate-slide-in-left opacity-100 translate-x-0'
