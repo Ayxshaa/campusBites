@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useCart } from './CartContext';
 import { Menu, X, ShoppingCart, Package } from 'lucide-react';
@@ -11,6 +11,7 @@ const Navbar = () => {
   const location = useLocation();
   const [activePage, setActivePage] = useState('/');
   const [activeOrdersCount, setActiveOrdersCount] = useState(0);
+  const menuRef = useRef(null);
 
   // Set active page based on current URL path when component mounts or location changes
   useEffect(() => {
@@ -43,19 +44,43 @@ const Navbar = () => {
     setIsOpen(!isOpen);
   };
 
+  // Close menu when clicking outside or pressing escape
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isOpen && menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    const handleEscape = (event) => {
+      if (isOpen && event.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleEscape);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+        document.removeEventListener('keydown', handleEscape);
+      };
+    }
+  }, [isOpen]);
+
   // Helper function to determine if a link is active
   const isActive = (path) => {
     return activePage === path;
   };
 
   return (
-    <nav className="bg-white shadow-md fixed top-0 left-0 right-0 z-30">
+    <nav ref={menuRef} className="bg-white shadow-md fixed top-0 left-0 right-0 z-30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center">
               <Link to="/">
-                <img className="h-40" src="/images/logo1.jpeg" alt="FoodDelivery Logo" />
+                <img className="h-16 sm:h-24 md:h-32 lg:h-40" src="/images/logo1.jpeg" alt="FoodDelivery Logo" />
               </Link>
             </div>
             
@@ -108,13 +133,15 @@ const Navbar = () => {
                     {totalItems}
                   </span>
                 )}
+                <span className={`${isActive('/specials') ? 'ml-2 text-orange-600 border-orange-500' : 'border-transparent text-gray-600 hover:border-orange-300 hover:text-orange-600'} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}>Your Cart</span>
               </Link>
-              <Link to="/login" className="border border-orange-500 text-orange-500 px-4 py-2 rounded-md text-sm font-medium hover:bg-orange-50">
-                Admin Login
-              </Link>
-              <Link to="/signup" className="bg-orange-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-orange-600">
-                Admin Sign Up
-              </Link>
+              {/* <Link 
+                to="/cart" 
+                className={`${isActive('/specials') ? 'text-orange-600 border-orange-500' : 'border-transparent text-gray-600 hover:border-orange-300 hover:text-orange-600'} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+              >
+                Your Cart
+              </Link> */}
+              
             </div>
             
             {/* Mobile menu button */}
@@ -132,9 +159,17 @@ const Navbar = () => {
         </div>
       </div>
 
+      {/* Mobile menu overlay */}
+      {isOpen && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black/50 z-40 top-16"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
       {/* Mobile menu */}
       {isOpen && (
-        <div className="md:hidden">
+        <div className="md:hidden fixed top-16 left-0 right-0 bg-white shadow-lg z-50 max-h-[calc(100vh-4rem)] overflow-y-auto">
           <div className="pt-2 pb-3 space-y-1">
             <Link 
               to="/" 

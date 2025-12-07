@@ -18,6 +18,15 @@ const Features = () => {
   ];
 
   useEffect(() => {
+    // Check if animation has already run in this session
+    const hasAnimated = sessionStorage.getItem('featuresAnimated');
+    if (hasAnimated === 'true') {
+      setIsVisible(true);
+      setVisibleFeatures([0, 1, 2, 3, 4, 5]);
+      hasAnimatedRef.current = true;
+      return;
+    }
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -25,6 +34,7 @@ const Features = () => {
           if (entry.isIntersecting && !hasAnimatedRef.current) {
             hasAnimatedRef.current = true;
             setIsVisible(true);
+            sessionStorage.setItem('featuresAnimated', 'true');
             
             // Animate features in pairs - each row (pair) animates together
             // Row 1: indices 0, 1
@@ -64,7 +74,7 @@ const Features = () => {
   }, []);
 
   return (
-    <section id="features" className="py-16 bg-white relative overflow-hidden" ref={sectionRef}>
+    <section id="features" className="py-10 sm:py-12 md:py-16 bg-white relative overflow-hidden" ref={sectionRef}>
       {/* bottom gradient overlay */}
       <div
         aria-hidden="true"
@@ -78,17 +88,17 @@ const Features = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 
           ref={titleRef}
-          className={`text-center mb-12 transition-all duration-1000 ${
+          className={`text-center mb-8 sm:mb-12 transition-all duration-1000 ${
             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
           }`}
         >
-          <span className="block text-3xl sm:text-4xl font-extrabold text-gray-900">
+          <span className="block text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900">
             Why Choose <span className="text-orange-600">Campus Bites</span>?
           </span>
-          <span className="mt-3 inline-block h-1 w-24 rounded-full bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500"></span>
+          <span className="mt-3 inline-block h-1 w-20 sm:w-24 rounded-full bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500"></span>
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
           {features.map((feature, index) => {
             const isEven = index % 2 === 0; // Left column (0, 2, 4)
             const isVisible = visibleFeatures.includes(index);
@@ -108,11 +118,11 @@ const Features = () => {
               >
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-orange-500/10 via-amber-400/10 to-yellow-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                 <div className="relative z-10">
-                  <div className="mb-4 h-12 w-12 rounded-xl bg-gradient-to-br from-orange-50 to-amber-50 text-orange-600 grid place-items-center">
-                    {feature.Icon ? <feature.Icon className="h-6 w-6" strokeWidth={2.2} /> : null}
+                  <div className="mb-3 sm:mb-4 h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-gradient-to-br from-orange-50 to-amber-50 text-orange-600 grid place-items-center">
+                    {feature.Icon ? <feature.Icon className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={2.2} /> : null}
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{feature.title}</h3>
-                  <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">{feature.title}</h3>
+                  <p className="text-sm sm:text-base text-gray-600 leading-relaxed">{feature.description}</p>
                 </div>
               </div>
             );
@@ -124,4 +134,3 @@ const Features = () => {
 };
 
 export default Features;
-

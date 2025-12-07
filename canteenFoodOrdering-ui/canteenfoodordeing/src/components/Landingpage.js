@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import ImageCarousel from './ImageCarousel';
 import { useCart } from './CartContext'; // Import the useCart hook
 import { ShoppingCart } from 'lucide-react'; // Import the cart icon
@@ -56,8 +57,10 @@ const LandingPage = () => {
   // Function to handle add to cart, using the same approach as MenuPage
   const handleAddToCart = (item) => {
     addToCart(item);
-    // Show a brief notification (optional)
-    alert(`${item.name} added to cart!`);
+    toast.success(`${item.name} added to cart!`, {
+      position: "top-right",
+      autoClose: 2000,
+    });
   };
 
   // Function to render stars based on rating (same as MenuPage)

@@ -1,6 +1,8 @@
 // [Imports remain the same: 75-76]
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { ArrowLeft, Package, User, Mail, Phone, CreditCard, IndianRupee, Plus, Minus, Trash2 } from 'lucide-react';
 import { useCart } from '../components/CartContext';
 
 const CheckoutPage = () => { // 
@@ -30,7 +32,10 @@ const CheckoutPage = () => { //
     };
     script.onerror = () => {
       console.error('Failed to load Razorpay script');
-      alert('Failed to load payment gateway. Please refresh the page.');
+      toast.error('Failed to load payment gateway. Please refresh the page.', {
+        position: "top-right",
+        autoClose: 4000,
+      });
     };
    
      document.body.appendChild(script);
@@ -85,17 +90,26 @@ const CheckoutPage = () => { //
   // Razorpay Payment Integration
   const initiateRazorpayPayment = async () => {
     if (!customerInfo.name || !customerInfo.email || !customerInfo.phone) { // [cite: 94]
-      alert('Please fill in all customer details');
+      toast.warning('Please fill in all customer details', {
+        position: "top-right",
+        autoClose: 3000,
+      });
       return; // [cite: 95]
     }
     
     if (cartItems.length === 0) { // [cite: 95]
-      alert('Your cart is empty. Please add items before placing an order.');
+      toast.warning('Your cart is empty. Please add items before placing an order.', {
+        position: "top-right",
+        autoClose: 3000,
+      });
       return; // [cite: 96]
     }
 
     if (!razorpayLoaded) { // [cite: 96]
-      alert('Payment gateway is still loading. Please wait a moment.');
+      toast.info('Payment gateway is still loading. Please wait a moment.', {
+        position: "top-right",
+        autoClose: 3000,
+      });
       return; // [cite: 97]
     }
     
@@ -165,17 +179,26 @@ const CheckoutPage = () => { //
               
               // --- REMOVED saveOrderToLocalStorage  ---
               
-              alert(`Payment Verified Successfully! Thank you, ${customerInfo.name}!`);
+              toast.success(`Payment Verified Successfully! Thank you, ${customerInfo.name}!`, {
+                position: "top-right",
+                autoClose: 3000,
+              });
               clearCart();
               
               // Navigate to track orders page
               navigate('/track-orders'); // 
             } else {
-              alert("Payment verification failed!"); // [cite: 109]
+              toast.error("Payment verification failed!", {
+                position: "top-right",
+                autoClose: 4000,
+              });
             }
           } catch (error) {
             console.error("Verification error:", error); // [cite: 110]
-            alert("Could not verify payment. Please contact support."); // [cite: 111]
+            toast.error("Could not verify payment. Please contact support.", {
+              position: "top-right",
+              autoClose: 4000,
+            });
           } finally {
             setIsProcessing(false); // [cite: 111]
           }
@@ -201,7 +224,10 @@ const CheckoutPage = () => { //
       
     } catch (error) { // [cite: 116]
       console.error("Error creating order:", error);
-      alert("Could not connect to payment server. Please try again."); // [cite: 117]
+      toast.error("Could not connect to payment server. Please try again.", {
+        position: "top-right",
+        autoClose: 4000,
+      });
       setIsProcessing(false);
     }
   };
@@ -211,146 +237,199 @@ const CheckoutPage = () => { //
     initiateRazorpayPayment();
   };
 
-  // [The rest of the JSX (return statement) remains exactly the same: 119-155]
-  // ... (No changes to the HTML structure)
   return (
-    <div className="bg-gray-50 min-h-screen p-6">
-        <div className="max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold text-gray-800 mb-6">Checkout</h1>
+    <div className="min-h-screen bg-gradient-to-br from-orange-50/50 via-orange-50/30 to-orange-100/50 pt-24 pb-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-800 mb-1">Checkout</h1>
+                <p className="text-sm text-gray-500">Complete your order details</p>
+              </div>
+              <button
+                onClick={handleBack}
+                className="bg-white border border-gray-200 text-gray-700 font-medium py-2.5 px-4 rounded-lg hover:bg-gray-50 transition-all duration-200 flex items-center text-sm"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Menu
+              </button>
+            </div>
+
             {cartItems.length === 0 ? (
-                <div className="text-center py-10">
-                    <p className="text-gray-600 mb-4">Your cart is empty</p>
+                <div className="text-center py-20 bg-white rounded-2xl shadow-sm border border-gray-100">
+                    <div className="w-16 h-16 bg-orange-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-orange-200/50">
+                        <Package className="w-8 h-8 text-orange-600" />
+                    </div>
+                    <p className="text-gray-700 mb-4">Your cart is empty</p>
                     <button 
                         onClick={handleBack}
-                        className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-6 rounded-lg"
+                        className="bg-orange-500/10 border border-orange-200 text-orange-600 font-medium py-2.5 px-6 rounded-lg hover:bg-orange-500/15 transition-all duration-200 text-sm"
                     >
                         Return to Menu
                     </button>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="md:col-span-1">
-                        <div className="bg-white p-4 rounded-lg shadow">
-                            <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
-                            <div className="max-h-64 overflow-y-auto mb-4">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    {/* Order Summary */}
+                    <div className="lg:col-span-1 order-2 lg:order-1">
+                        <div className="bg-white rounded-2xl shadow-sm border-2 border-orange-200/50 p-4 sm:p-5 sticky top-20 sm:top-24 lg:top-24">
+                            <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                                <div className="w-8 h-8 bg-orange-500/10 rounded-lg flex items-center justify-center mr-2 border border-orange-200/50">
+                                    <Package className="w-4 h-4 text-orange-600" />
+                                </div>
+                                Order Summary
+                            </h2>
+                            <div className="max-h-80 overflow-y-auto mb-4 pr-2">
                                 {cartItems.map((item) => (
-                                    <div key={item.id} className="mb-3 pb-3 border-b border-gray-100 last:border-b-0">
+                                    <div key={item.id} className="mb-3 pb-3 border-b border-gray-100 last:border-b-0 last:mb-0 last:pb-0">
                                         <div className="flex justify-between items-start mb-2">
                                             <div className="flex-1">
-                                                <span className="font-medium text-sm">{item.name}</span>
-                                                <div className="text-green-600 text-sm">₹{item.price.toFixed(2)} each</div>
+                                                <span className="font-medium text-sm text-gray-800">{item.name}</span>
+                                                <div className="text-gray-500 text-xs flex items-center mt-0.5">
+                                                    <IndianRupee className="w-3 h-3 mr-0.5" />
+                                                    {item.price.toFixed(2)} each
+                                                </div>
                                             </div>
                                             <button
                                                 onClick={() => handleRemoveItem(item.id)}
-                                                className="text-red-500 hover:text-red-700 text-sm ml-2"
+                                                className="text-red-600 hover:text-red-700 text-xs ml-2 flex items-center"
                                                 title="Remove item"
                                             >
-                                                ✕
+                                                <Trash2 className="w-3.5 h-3.5" />
                                             </button>
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center space-x-2">
                                                 <button
                                                     onClick={() => handleDecreaseQuantity(item.id)}
-                                                    className="bg-gray-200 hover:bg-gray-300 text-gray-700 w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold"
+                                                    className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-200"
                                                 >
-                                                    −
+                                                    <Minus className="h-3.5 w-3.5" />
                                                 </button>
-                                                <span className="text-sm font-medium min-w-[20px] text-center">{item.quantity}</span>
+                                                <span className="text-sm font-semibold min-w-[24px] text-center text-gray-800">{item.quantity}</span>
                                                 <button
                                                     onClick={() => handleIncreaseQuantity(item.id)}
-                                                    className="bg-gray-200 hover:bg-gray-300 text-gray-700 w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold"
+                                                    className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-200"
                                                 >
-                                                    +
+                                                    <Plus className="h-3.5 w-3.5" />
                                                 </button>
                                             </div>
-                                            <span className="text-green-600 font-medium text-sm">₹{(item.price * item.quantity).toFixed(2)}</span>
+                                            <span className="text-gray-800 font-semibold text-sm flex items-center">
+                                                <IndianRupee className="w-3.5 h-3.5 mr-0.5" />
+                                                {(item.price * item.quantity).toFixed(2)}
+                                            </span>
                                         </div>
                                     </div>
                                 ))}
                             </div>
-                            <div className="border-t border-gray-200 pt-4 mt-2">
-                                <div className="flex justify-between text-gray-600 mb-2">
+                            <div className="border-t border-gray-100 pt-4">
+                                <div className="flex justify-between text-sm text-gray-600 mb-3">
                                     <span>Subtotal</span>
-                                    <span>₹{totalPrice.toFixed(2)}</span>
-                                 </div>
-                                <div className="flex justify-between font-bold text-lg mt-3">
+                                    <span className="font-medium flex items-center">
+                                        <IndianRupee className="w-3.5 h-3.5 mr-0.5" />
+                                        {totalPrice.toFixed(2)}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between font-bold text-lg text-gray-800 pt-3 border-t border-gray-100">
                                     <span>Total</span>
-                                    <span>₹{totalPrice.toFixed(2)}</span>
+                                    <span className="flex items-center">
+                                        <IndianRupee className="w-5 h-5 mr-0.5" />
+                                        {totalPrice.toFixed(2)}
+                                    </span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div className="md:col-span-2">
-                        <div className="bg-white p-4 rounded-lg shadow">
-                            <h2 className="text-xl font-semibold mb-4">Your Information</h2>
+
+                    {/* Customer Information Form */}
+                    <div className="lg:col-span-2 order-1 lg:order-2">
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                            <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 sm:mb-6 flex items-center">
+                                <User className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-orange-500/70" />
+                                Your Information
+                            </h2>
                             <form onSubmit={handleSubmit}>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-4">
                                     <div>
-                                        <label className="block text-gray-700 mb-1" htmlFor="name">Full Name</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1.5 flex items-center" htmlFor="name">
+                                            <User className="w-4 h-4 mr-1.5 text-orange-500/70" />
+                                            Full Name
+                                        </label>
                                         <input
                                             type="text"
                                             id="name"
                                             name="name"
                                             value={customerInfo.name}
                                             onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                            className="w-full h-11 border border-gray-200 rounded-lg px-4 py-2.5 focus:border-orange-400 focus:ring-1 focus:ring-orange-200 bg-white transition-all duration-200 text-sm"
+                                            placeholder="Enter your full name"
                                             required
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-gray-700 mb-1" htmlFor="email">Email</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1.5 flex items-center" htmlFor="email">
+                                            <Mail className="w-4 h-4 mr-1.5 text-orange-500/70" />
+                                            Email
+                                        </label>
                                         <input
                                             type="email"
                                             id="email"
                                             name="email"
                                             value={customerInfo.email}
                                             onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                            className="w-full h-11 border border-gray-200 rounded-lg px-4 py-2.5 focus:border-orange-400 focus:ring-1 focus:ring-orange-200 bg-white transition-all duration-200 text-sm"
+                                            placeholder="Enter your email"
                                             required
                                         />
                                     </div>
                                 </div>
                                 <div className="mb-4">
-                                    <label className="block text-gray-700 mb-1" htmlFor="phone">Phone Number</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1.5 flex items-center" htmlFor="phone">
+                                        <Phone className="w-4 h-4 mr-1.5 text-orange-500/70" />
+                                        Phone Number
+                                    </label>
                                     <input
                                         type="tel"
                                         id="phone"
                                         name="phone"
                                         value={customerInfo.phone}
                                         onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                        className="w-full h-11 border border-gray-200 rounded-lg px-4 py-2.5 focus:border-orange-400 focus:ring-1 focus:ring-orange-200 bg-white transition-all duration-200 text-sm"
+                                        placeholder="Enter your phone number"
                                         required
                                     />
                                 </div>
                                 <div className="mb-6">
-                                    <label className="block text-gray-700 mb-1">Payment Method</label>
-                                    <div className="flex space-x-4">
-                                        <label className="flex items-center">
+                                    <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center">
+                                        <CreditCard className="w-4 h-4 mr-1.5 text-orange-500/70" />
+                                        Payment Method
+                                    </label>
+                                    <div className="bg-gray-50/80 rounded-lg p-4 border border-gray-100">
+                                        <label className="flex items-center cursor-pointer">
                                             <input
                                                 type="radio"
                                                 name="paymentMethod"
                                                 value="razorpay"
                                                 checked={customerInfo.paymentMethod === 'razorpay'}
                                                 onChange={handleInputChange}
-                                                className="mr-2"
+                                                className="mr-3 w-4 h-4 text-orange-500 focus:ring-orange-200"
                                             />
-                                            Online Payment (Razorpay)
+                                            <span className="text-sm text-gray-700">Online Payment (Razorpay)</span>
                                         </label>
                                     </div>
                                 </div>
-                                <div className="flex justify-between mt-6">
+                                <div className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-0 pt-4 border-t border-gray-100">
                                     <button
                                         type="button"
                                         onClick={handleBack}
-                                        className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-6 rounded-lg"
+                                        className="bg-white border border-gray-200 text-gray-700 font-medium py-2.5 px-4 sm:px-6 rounded-lg hover:bg-gray-50 transition-all duration-200 text-sm w-full sm:w-auto"
                                     >
                                         Back to Menu
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={isProcessing || cartItems.length === 0 || !razorpayLoaded}
-                                        className="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-6 rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                        className="bg-orange-500/10 border-2 border-orange-300 text-orange-600 font-medium py-2.5 px-4 sm:px-6 rounded-lg hover:bg-orange-500/20 hover:border-orange-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm shadow-sm hover:shadow-md w-full sm:w-auto"
                                     >
                                         {!razorpayLoaded ?
                                             'Loading Payment...' : 

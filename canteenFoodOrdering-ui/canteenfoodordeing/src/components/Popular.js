@@ -35,7 +35,7 @@ const Popular = ({ items = [], onAddToCart, renderStars, title = 'Popular Right 
           <p className="mt-4 max-w-2xl mx-auto text-xl text-gray-500">{subtitle}</p>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {items.map((item, index) => (
             <div
               key={index}
@@ -95,5 +95,3 @@ const Popular = ({ items = [], onAddToCart, renderStars, title = 'Popular Right 
 };
 
 export default Popular;
-
-

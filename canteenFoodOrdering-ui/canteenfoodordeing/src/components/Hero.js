@@ -14,6 +14,23 @@ const Hero = () => {
   const fullText = 'Skip the lines and order ahead! Get your favorite campus food delivered or ready for pickup when you arrive.';
 
   useEffect(() => {
+    // Check if animation has already run in this session
+    const hasAnimated = sessionStorage.getItem('heroAnimated');
+    
+    if (hasAnimated === 'true') {
+      // Set all states to final values immediately (skip animation)
+      const allWords = [
+        ...line1Words.map((_, i) => `line1-${i}`),
+        ...line2Words.map((_, i) => `line2-${i}`)
+      ];
+      setVisibleWords(allWords);
+      setTypedText(fullText);
+      setShowButton(true);
+      setShowCursor(false);
+      return;
+    }
+
+    // Animation hasn't run yet, proceed with animation
     const timeouts = [];
     
     // Animate first line - faster timing
@@ -52,7 +69,7 @@ const Hero = () => {
       fullText.split('').forEach((char, index) => {
         const timeout = setTimeout(() => {
           setTypedText(prev => prev + char);
-        }, typingStartDelay + (index * 25)); // 25ms per character for typing speed
+        }, typingStartDelay + (index * 20)); // 25ms per character for typing speed
         timeouts.push(timeout);
       });
 
@@ -65,6 +82,8 @@ const Hero = () => {
       // Show button after typing completes
       const showButtonTimeout = setTimeout(() => {
         setShowButton(true);
+        // Mark animation as complete
+        sessionStorage.setItem('heroAnimated', 'true');
       }, typingStartDelay + (fullText.length * 25) + 300);
       timeouts.push(showButtonTimeout);
     }, typingStartDelay);
@@ -99,12 +118,12 @@ const Hero = () => {
 
   return (
     <div className="relative bg-gradient-to-r from-orange-50 via-orange-100 to-orange-700">
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 py-28 md:py-36 lg:py-44">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-16 sm:py-20 md:py-28 lg:py-36 xl:py-44">
         <div className="lg:grid lg:grid-cols-2 lg:gap-10 items-center">
           {/* Left copy */}
           <div>
             <h1 className="font-extrabold tracking-tight text-gray-900 leading-tight">
-              <span className="block text-4xl md:text-5xl lg:text-6xl">
+              <span className="block text-3xl sm:text-4xl md:text-5xl lg:text-6xl">
                 {line1Words.map((word, index) => (
                   <span
                     key={`line1-${index}`}
@@ -118,7 +137,7 @@ const Hero = () => {
                   </span>
                 ))}
               </span>
-              <span className="block mt-2 text-4xl md:text-5xl lg:text-6xl text-green-900">
+              <span className="block mt-2 text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-green-900">
                 {line2Words.map((word, index) => (
                   <span
                     key={`line2-${index}`}
@@ -133,14 +152,14 @@ const Hero = () => {
                 ))}
               </span>
             </h1>
-            <p className="mt-6 max-w-xl text-base md:text-lg text-gray-600">
+            <p className="mt-4 sm:mt-6 max-w-xl text-sm sm:text-base md:text-lg text-gray-600">
               {typedText}
-              <span className={`inline-block w-0.5 h-5 bg-gray-600 ml-1 align-middle ${showCursor ? 'opacity-100' : 'opacity-0'}`}></span>
+              <span className={`inline-block w-0.5 h-4 sm:h-5 bg-gray-600 ml-1 align-middle ${showCursor ? 'opacity-100' : 'opacity-0'}`}></span>
             </p>
-            <div className="mt-8">
+            <div className="mt-6 sm:mt-8">
               <button 
                 onClick={() => navigate('/menu')} 
-                className={`bg-red-500 text-white font-semibold py-3 px-6 rounded-full shadow-md hover:bg-red-600 transition ${
+                className={`bg-red-500 text-white font-semibold py-2.5 sm:py-3 px-5 sm:px-6 rounded-full shadow-md hover:bg-red-600 transition text-sm sm:text-base ${
                   showButton ? 'animate-button-pop-up opacity-100' : 'opacity-0'
                 }`}
               >
@@ -150,35 +169,21 @@ const Hero = () => {
           </div>
 
           {/* Right visual */}
-          <div className="relative mt-12 lg:mt-0">
-            {/* Bowl image */}
-            <div className="relative mx-auto w-60 h-72 sm:w-80 sm:h-80 lg:w-96 lg:h-96 rounded-full overflow-hidden ring-8 ring-orange-200 shadow-xl">
-              <img style={{marginTop: "-60px"}} src="images/Hero.jpg" alt="Healthy Bowl" className="w-full h-full object-cover" />
+          <div className="relative mt-8 sm:mt-12 lg:mt-0">
+            {/* Bowl image - Full circle with centered image */}
+            <div className="relative mx-auto w-48 h-48 xs:w-56 xs:h-56 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-full overflow-hidden ring-4 sm:ring-6 lg:ring-8 ring-orange-200 shadow-xl">
+              <img 
+                src="images/Hero.png" 
+                alt="Healthy Bowl" 
+                className="w-full h-full object-cover object-center" 
+              />
             </div>
 
             {/* 20% Off badge */}
-            <div className="absolute top-2 right-0 sm:right-2 lg:right-0 bg-lime-300 text-gray-800 rounded-full w-20 h-20 sm:w-24 sm:h-24 grid place-items-center font-extrabold shadow-md">
+            <div className="absolute top-0 sm:top-2 right-0 sm:right-2 lg:right-0 bg-lime-300 text-gray-800 rounded-full w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 grid place-items-center font-extrabold shadow-md">
               <div className="text-center">
-                <div className="text-xl sm:text-2xl">20%</div>
+                <div className="text-lg sm:text-xl md:text-2xl">20%</div>
                 <div className="text-xs sm:text-sm">Off</div>
-              </div>
-            </div>
-
-            {/* Info card overlapping - Glass morphism effect */}
-            <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl shadow-2xl px-5 py-4 w-[90%] sm:w-80">
-              <div className="flex items-start space-x-3">
-                <div className="text-orange-600 text-xl">🍽️</div>
-                <div>
-                  <p className="font-semibold text-gray-900">Quick Orders</p>
-                  <p className="text-xs text-gray-700">Order your favorite campus meals in seconds</p>
-                </div>
-              </div>
-              <div className="mt-4 flex items-start space-x-3">
-                <div className="text-orange-600 text-xl">🎓</div>
-                <div>
-                  <p className="font-semibold text-gray-900">Student Discounts</p>
-                  <p className="text-xs text-gray-700">Exclusive deals for campus students</p>
-                </div>
               </div>
             </div>
           </div>
@@ -197,4 +202,3 @@ const Hero = () => {
 };
 
 export default Hero;
-
